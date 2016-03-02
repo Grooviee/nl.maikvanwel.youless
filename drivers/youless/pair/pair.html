@@ -1,0 +1,54 @@
+<style type="text/css">
+    .youless-wrapper, .youless-wrapper td {
+        font: 13.3333px Arial;
+    }
+</style>
+
+<script type="text/javascript">
+Homey.setTitle(__('pair.title'));
+
+Homey.on('error', function( errortype, callback ){
+    Homey.alert(__('pair.error'), 'error');
+    Homey.done();
+});
+
+Homey.on('continue', function( success, callback ){
+    Homey.showView('list_devices');
+});
+
+function pair() {
+	var name = document.getElementById('deviceName').value;
+	var ip = document.getElementById('deviceIp').value;
+
+	if (name != '' && ip != '') {
+		var data = {
+			name: name,
+			ip: ip
+		};
+
+		Homey.emit('get_devices', data);
+	} else {
+		Homey.alert(__('pair.required'), 'error');
+		Homey.done();
+	}
+}
+</script>
+
+<div class="youless-wrapper">
+    <p data-i18n="pair.text"></p>
+    <table>
+        <tr>
+            <td data-i18n="pair.name"></td>
+            <td><input id="deviceName" type="text" value="YouLess" placeholder="YouLess"/></td>
+        </tr>
+        <tr>
+            <td data-i18n="pair.ip"></td>
+            <td><input id="deviceIp" type="text" value="192.168.1." placeholder="pair.ipAddress"/></td>
+        </tr>
+
+        <tr>
+            <td>&nbsp;</td>
+            <td><button class="button" data-i18n="pair.save" onclick="pair()">Save</button></td>
+        </tr>
+    </table>
+</div>

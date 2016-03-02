@@ -1,0 +1,55 @@
+{
+  "id": "nl.maikvanwel.youless",
+  "name": {
+      "en": "YouLess"
+  },
+  "version": "0.0.1",
+  "compatibility": "0.x || 1.x",
+  "author": {
+      "name": "Maik van Wel",
+      "email": "m.vanwel@inproxio.eu"
+  },
+  "images": {
+    "large": "./assets/images/large.jpg",
+    "small": "./assets/images/small.jpg"
+  },
+  "category": "appliances",
+  "description": {
+    "en": "Enables Homey to use the YouLess energy meter as a trigger",
+    "nl": "Gebruik de YouLess energiemonitor als een trigger"
+  },
+  "dependencies": {
+    "request": "*"
+  },
+  "drivers": [
+    {
+      "id": "youless",
+      "name": {
+        "en": "YouLess energy meter",
+        "nl": "YouLess energiemeter"
+      },
+      "images": {
+        "large": "drivers/youless/assets/images/large.jpg",
+        "small": "drivers/youless/assets/images/small.jpg"
+      },
+      "class": "sensor",
+      "capabilities": [ "measure_power" ],
+      "pair": [
+        {
+          "id": "pair"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_youless"
+          }
+        },
+        {
+          "id": "add_youless",
+          "template": "add_devices"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "pair": {
+    "text": "Please enter the preferred name of the device and the IP address.",
+    "title": "Add YouLess device",
+    "error": "An error occurred.",
+    "required": "Both values are required.",
+    "name": "Name",
+    "ip": "IP address",
+    "save": "Save"
+  }
+}

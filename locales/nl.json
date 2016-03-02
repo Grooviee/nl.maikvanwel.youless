@@ -1,0 +1,11 @@
+{
+  "pair": {
+    "text": "Vul a.u.b. een apparaatnaam en het bijbehorende IP in.",
+    "title": "Voeg YouLess apparaat toe",
+    "error": "Een fout is opgetreden.",
+    "required": "Beide velden zijn verplicht.",
+    "name": "Naam",
+    "ip": "IP-adres",
+    "save": "Opslaan"
+  }
+}
