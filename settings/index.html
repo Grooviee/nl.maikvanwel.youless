@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+    <head>
+<script type="text/javascript" src="/manager/webserver/assets/js/jquery.js"></script>
+    </head>
+    <body>
+
+        <h1>YouLess Settings</h1>
+        <p>Youless itself is setup by adding it as a device. (Devices tab)</p>
+        <h2>Screensaver Settings</h2>
+        <p>You will need to set the maximum in watts for the green led ring and the orange led ring. <br/>Everything higher than the maximum for orange will be red. <br/>For example green until 1500 and Orange until 2500. (Depends on your average usage)</p>
+        <fieldset>
+            <div class="field row">
+                <label for="greenw">Green Max.</label>
+                <input id="greenw" type="text" value="" />
+            </div>
+            <div class="field row">
+                <label for="orangew">Orange Max.</label>
+                <input id="orangew" type="text" value="" />
+            </div>
+        </fieldset>
+
+        <button class="right" onclick="save()">Save changes</button>
+
+        <script type="text/javascript">
+        var onHomeyReady = function(){
+    			var loaded = 0,
+    				inputs = $('input');
+    			inputs.each(function(nr, el){
+    				el = $(el);
+    				Homey.get(el.attr('id'), function(er, value){
+    					if(el.attr('type') == 'checkbox'){
+    						el.prop('checked', value);
+    					}
+    					else {
+    						el.val(value);
+    					}
+    					loaded++;
+    					if(loaded == inputs.length)
+    						Homey.ready();
+    				});
+    			});
+    		};
+
+        function save() {
+            Homey.set('greenw', document.getElementById('greenw').value);
+            Homey.set('orangew', document.getElementById('orangew').value);
+        }
+        </script>
+
+    </body>
+</html>

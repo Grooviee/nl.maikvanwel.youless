@@ -1,5 +1,8 @@
 {
   "id": "nl.maikvanwel.youless",
+  "permissions": [
+    "homey:manager:ledring"
+  ],
   "name": {
       "en": "YouLess"
   },
@@ -21,6 +24,15 @@
   "dependencies": {
     "request": "*"
   },
+  "screensavers": [
+    {
+        "name": "powerusageled",
+        "title": {
+            "en": "Power Usage",
+            "nl": "Energie verbruik"
+        }
+    }
+  ],
   "drivers": [
     {
       "id": "youless",
