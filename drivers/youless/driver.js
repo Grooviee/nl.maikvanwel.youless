@@ -1,205 +1,235 @@
+"use strict";
 var request = require('request');
+// a list of devices, with their 'id' as key
+// it is generally advisable to keep a list of
+// paired and active devices in your driver's memory.
+var devices = {};
+var intervalId = {};
 
-var devices = [];
-var tempDeviceData;
+// the `init` method is called when your driver is loaded for the first time
+module.exports.init = function( devices_data, callback ) {
+    devices_data.forEach(initDevice);
+  //setInterval(monitor, 15000);
 
-module.exports.init = function (devices_data, callback) {
-    Homey.log("YouLess App start");
 
-    for (var x = 0; x < devices_data.length; x++) {
-        if (devices_data[x].hasOwnProperty("id")) {
-            Homey.log("Adding device", devices_data[x]);
 
-            devices.push({
-                name: devices_data[x].name,
-                data: devices_data[x],
-                cache: null
-            });
-        }
-    }
+  callback(true, null);
+}
 
-    setTimeout(monitor, 1000);
-    setInterval(monitor, 15000);
+module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback ) {
+    // run when the user has changed the device's settings in Homey.
+    // changedKeysArr contains an array of keys that have been changed, for your convenience :)
+    //Homey.log(newSettingsObj.pollingrate);
+    if(newSettingsObj.pollingrate < 5){callback( __('pair.settingschanged.not_under_5'), null );}
+    clearInterval(intervalId[device_data.id]);
+    delete intervalId[device_data.id];
 
-    callback(true, null);
-};
+    devices[device_data.id].settings.name=newSettingsObj.name;
+     devices[device_data.id].settings.host=newSettingsObj.host;
+     devices[device_data.id].settings.pollingrate=newSettingsObj.pollingrate;
+     devices[device_data.id].name = newSettingsObj.name;
+    initDeviceInterval(device_data,devices[device_data.id].settings.pollingrate);
 
+
+    // always fire the callback, or the settings won't change!
+    // if the settings must not be saved for whatever reason:
+    // callback( "Your error message", null );
+    // else
+    callback( null, true );
+
+}
+
+
+// the `added` method is called is when pairing is done and a device has been added
+module.exports.added = function( device_data, callback ) {
+    initDevice( device_data );
+
+
+    Homey.log('Device added! * ' + device_data.id + ' *');
+    callback( null, true );
+}
+
+// the `delete` method is called when a device has been deleted by a user
+module.exports.deleted = function( device_data, callback ) {
+    delete devices[ device_data.id ];
+
+    clearInterval(intervalId[device_data.id]);
+    delete intervalId[device_data.id];
+    Homey.log('Device deleted');
+    callback( null, true );
+}
+
+// the `pair` method is called when a user start pairing
 module.exports.pair = function( socket ) {
-	socket.on('list_devices', function( device_data, callback ) {
-        devices.push({
-           name: tempDeviceData.name,
-           data: {
-               name: tempDeviceData.name,
-               id: tempDeviceData.ip.replace(/\./g, '-'),
-               ip: tempDeviceData.ip
-           },
-           cache: null
-        });
+    socket.on('pair', function( device, callback ){
 
-        Homey.log("Added", devices[devices.length-1]);
-        Homey.manager('insights').createLog( 'power_usage' + devices.name, {
-        label: {
-            nl: 'Energie verbruik'
-        },
-        type: 'number',
-        units: {
-            nl: 'kWh'
-        },
-        decimals: 2,
-        chart: 'line' // prefered, or default chart type. can be: line, area, stepLine, column, spline, splineArea, scatter
-    }, function callback(err , success){
-        if( err ) return Homey.error(err);
-      });
-		callback(null, devices);
-	});
+      var url = 'http://' + device.settings.host + '/a?f=j';
+      request({
+            url: url,
+            json: true
+          }, function (error, response, body) {
 
-	socket.on('get_devices', function( data, callback ) {
-        Homey.log("get_devices", data);
+            if (!error && response.statusCode === 200) {
 
-        tempDeviceData = {
-            name: data.name,
-            ip: data.ip
-        };
+                callback(null, __('pair.feedback.succesfully_connected'))
 
-        socket.emit('continue', null);
-	});
-
-	socket.on('disconnect', function(){
-		Homey.log("YouLess app - User aborted pairing, or pairing is finished");
-	});
-};
-
-module.exports.capabilities = {
-	measure_power: {
-		get: function(device_data, callback) {
-            var device = getDevice(device_data.id);
-
-            if(device.cache) {
-                var last = parseInt(device.cache[device.cache.length - 1]);
-                Homey.log("measure_power GET: ", last);
-                callback(false, last);
-            } else {
-                callback(false, null);
-            }
-		}
-	}
-};
-
-module.exports.deleted = function (device_data) {
-    var device = getDevice(device_data.id);
-
-    var device_index = devices.indexOf(device);
-    if (device_index > -1) {
-        devices.splice(device_index, 1);
-    }
-};
-
-function monitor() {
-    for (var i = 0; i < devices.length; i++) {
-        (function(device) {
-            request('http://' + device.data.ip + '/V?h=1&f=j', function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    var data = JSON.parse(body);
-                    var values = data.val.filter(Boolean);
-
-                    var current = parseInt(values[values.length - 1]);
-                    module.exports.realtime(device, "measure_power", current);
-                    Homey.log("measure_power MONITOR: ", current);
-
-                    Homey.manager('insights').createEntry( 'power_usage' + devices.name, current, new Date(), function(err, success){
-                        if( err ) return Homey.error(err);
-                    });
-
-                    var Animation = Homey.manager('ledring').Animation;
-
-                    var frames_powerusageled = [];
-                    var frame_powerusageled = [];
-
-                    var greenw = Homey.manager('settings').get('greenw');
-                    var orangew = Homey.manager('settings').get('orangew');
-
-                    if(greenw == null || orangew == null){
-                      var greenw = 1500;
-                      Homey.manager('settings').set('greenw',1500);
-                      var orangew = 2500;
-                      Homey.manager('settings').set('orangew',2500);
-                    }
-
-                    console.log('greenw: ', greenw);
-                    // for every pixel...
-                    for( var pixel = 0; pixel < 24; pixel++ ) {
-                    	if( pixel < 24) {
-                      if(current <= greenw){
-                        frame_powerusageled.push({
-                    			r: 0,	g: 255,	b: 0
-                    		});
-                      }
-                      if(current >= greenw && current <= orangew){
-                        frame_powerusageled.push({
-                          r: 255,	g: 128,	b: 0
-                        });
-                      }
-                      if(current >= orangew){
-                        frame_powerusageled.push({
-                          r: 255,	g: 0,	b: 0
-                        });
-                      }
-
-                    	} else {
-                    		frame_powerusageled.push({
-                    			r: 0, g: 0, b: 0
-                    		})
-                    	}
-                    }
-                    frames_powerusageled.push(frame_powerusageled);
-
-                    var animation_powerusageled = new Animation({
-
-                        options: {
-                            fps     : 1, 	// real frames per second
-                            tfps    : 60, 	// target frames per second. this means that every frame will be interpolated 60 times
-                            rpm     : 1,	// rotations per minute
-                        },
-                        frames    : frames_powerusageled
-                    })
-
-                    animation_powerusageled.register(function(err, result){
-                    	Homey.manager('ledring').registerScreensaver('powerusageled', animation_powerusageled)
-                    	if( err ) return Homey.error(err);
-                    	animation_powerusageled.on('screensaver_start', function( screensaver_id ){
-                    		Homey.log('Screensaver started')
-
-                    	})
-                    	animation_powerusageled.on('screensaver_stop', function( screensaver_id ){
-                    		Homey.log('Screensaver stopped')
-                    	})
-                    })
-
-
-                    device.cache = values;
-                } else {
-                    Homey.log(error);
-                }
-            });
-        })(devices[i]);
-    }
-}
-
-function getDevice(device_id) {
-    for (var x = 0; x < devices.length; x++) {
-        if (devices[x].data.id === device_id) {
-            return devices[x];
+          }
+          else{
+            callback(__('pair.feedback.could_not_connect') + ' ' + error)
+          }
         }
+    )
+
+
+
+})
+}
+
+
+
+// these are the methods that respond to get/set calls from Homey
+// for example when a user pressed a button
+module.exports.capabilities = {
+    measure_power: {
+
+        // this function is called by Homey when it wants to GET the dim state, e.g. when the user loads the smartphone interface
+        // `device_data` is the object as saved during pairing
+        // `callback` should return the current value in the format callback( err, value )
+        get: function( device_data, callback ){
+
+            // get the bulb with a locally defined function
+            var device = getDeviceByData( device_data );
+            if( device instanceof Error ) return callback( device );
+
+            return callback( null, device.data.LastUsage );
+        }
+    },
+    meter_power: {
+      get: function( device_data, callback ){
+        var device = getDeviceByData( device_data );
+        if( device instanceof Error ) return callback( device );
+
+        return callback( null, device.data.totalKWH );
+      }
     }
 }
 
-module.exports.deleted = function (device_data) {
-    var device = getDevice(device_data.id);
 
-    var device_index = devices.indexOf(device);
-    if (device_index > -1) {
-        devices.splice(device_index, 1);
+
+// a helper method to get a device from the devices list by it's device_data object
+function getDeviceByData( device_data ) {
+    var device = devices[ device_data.id ];
+    if( typeof device === 'undefined' ) {
+        return new Error("invalid_device");
+    } else {
+        return device;
     }
+}
 
-    Homey.log("Removed device " + device_data.id + ", devices left:", devices);
-};
+// a helper method to add a device to the devices list
+function initDevice( device_data, newSettingsObj, callback) {
+
+  module.exports.getSettings( device_data, function( err, settings ){
+
+
+    //migration from old v0.9.8 app with no settings in device
+    if (settings.name==undefined || settings.host==undefined || settings.pollingrate==undefined) {
+      Homey.log("No pollingrate found!");
+      settings = {
+        name: device_data.name,
+        host: device_data.ip,
+        pollingrate: 10 };
+        devices[ device_data.id ].settings = settings;
+        initDeviceInterval(device_data, settings.pollingrate);
+        module.exports.setSettings( device_data, settings, function( err, settings ){
+            // ... dunno what to do here, think nothing...
+        })
+        devices[ device_data.id ].name = settings.name;
+    }
+    else{
+      devices[ device_data.id ].settings = settings;
+      initDeviceInterval(device_data, settings.pollingrate);
+      devices[ device_data.id ].name = settings.name;
+    }
+  })
+    devices[ device_data.id ] = {};
+    devices[ device_data.id ].data = device_data;
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+function initDeviceInterval(device_data,pollingrate){
+  intervalId[device_data.id] = setInterval(function () {
+    monitorYouless(devices[device_data.id], function(response){
+        //reserved for callback
+      })
+    }, pollingrate * 1000);
+}
+
+
+
+function monitorYouless(device_data, callback) {
+
+
+      var device = device_data;
+
+      Homey.log("Trying " + device.settings.host + " Polling rate is: " + device.settings.pollingrate);
+
+
+      var url = 'http://' + device.settings.host + '/a?f=j';
+      request({
+            url: url,
+            json: true
+          }, function (error, response, body) {
+
+            if (!error && response.statusCode === 200) {
+                module.exports.setAvailable( device.data );
+                var obj = body;
+                var currentUsage = obj.pwr;
+                var MeterTotal = obj.cnt;
+                MeterTotal = MeterTotal.split(',').join("");
+                MeterTotal = parseFloat(MeterTotal);
+
+                if(currentUsage != device.data.LastUsage){
+                  module.exports.realtime( device.data, 'measure_power', currentUsage );
+                  device.data.LastUsage = currentUsage;
+                }
+
+                if(MeterTotal != device.data.totalKWH){
+                  module.exports.realtime( device.data, 'meter_power', MeterTotal );
+                  device.data.totalKWH = MeterTotal;
+                }
+
+
+              
+
+
+                Homey.log('Current usage:' + device.data.LastUsage + ' W');
+                Homey.log('Meter total:' + device.data.totalKWH + ' W/H');
+
+
+
+
+
+
+          }
+          else{
+            Homey.log("YouLess is offline!")
+            module.exports.setUnavailable( device.data, "Offline" );
+          }
+        }
+      )
+
+
+
+}

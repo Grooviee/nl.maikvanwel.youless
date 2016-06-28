@@ -1,54 +1,72 @@
 <style type="text/css">
-    .youless-wrapper, .youless-wrapper td {
-        font: 13.3333px Arial;
-    }
+  span label {
+    width: 100px
+  }
 </style>
-
 <script type="text/javascript">
-Homey.setTitle(__('pair.title'));
+  // Set window options
+  var width	= 400;
+  var height	= 400;
+  var left	= (screen.width/2)-(width/2);
+  var top		= (screen.height/2)-(height/2);
+  var url;
 
-Homey.on('error', function( errortype, callback ){
-    Homey.alert(__('pair.error'), 'error');
-    Homey.done();
-});
+  // Set translated items
+  $("label[for='name']").text(__('pair.configuration.name') + ':');
+  $("label[for='ip_address']").text(__('pair.configuration.ip_address') + ':');
 
-Homey.on('continue', function( success, callback ){
-    Homey.showView('list_devices');
-});
 
-function pair() {
-	var name = document.getElementById('deviceName').value;
-	var ip = document.getElementById('deviceIp').value;
+	function configure()
+	{
+    $('.youless-err-msg').text('')
 
-	if (name != '' && ip != '') {
-		var data = {
-			name: name,
-			ip: ip
-		};
+		var name = $("#name").val();
+		var ipAddress = $("#ip_address").val();
 
-		Homey.emit('get_devices', data);
-	} else {
-		Homey.alert(__('pair.required'), 'error');
-		Homey.done();
+
+		var device = {
+				data: { // this data object is saved to- and unique for the device. It is passed on the get and set functions as 1st argument
+					id: name + '-' + ipAddress // something unique, so your driver knows which physical device it is. A MAC address or Node ID, for example. This is required
+				},
+				name: name,
+				settings: {
+          name: name,
+					host: ipAddress,
+          pollingrate: 10
+				}
+			}
+		console.log('device', device)
+		Homey.emit( 'pair', device, function ( err, result ) {
+			if(err) {
+				$('.youless-err-msg').text(err)
+			}
+			else {
+				//Successfully connected
+				Homey.addDevice(device, function( err, result ){
+					if( err ) return console.error(err);
+          console.log( result);
+
+				});
+
+				//Done pairing
+				Homey.done();
+			}
+		} );
 	}
-}
 </script>
 
-<div class="youless-wrapper">
-    <p data-i18n="pair.text"></p>
-    <table>
-        <tr>
-            <td data-i18n="pair.name"></td>
-            <td><input id="deviceName" type="text" value="YouLess" placeholder="YouLess"/></td>
-        </tr>
-        <tr>
-            <td data-i18n="pair.ip"></td>
-            <td><input id="deviceIp" type="text" value="192.168.1." placeholder="pair.ipAddress"/></td>
-        </tr>
+<p id="authentication_text" data-i18n="pair.authorization.configuration_explanation"></p>
+<p class="form-group">
+  <span class="input-wrap">
+    <label for="name"></label>
+    <input type="text" id="name"></input>
 
-        <tr>
-            <td>&nbsp;</td>
-            <td><button class="button" data-i18n="pair.save" onclick="pair()">Save</button></td>
-        </tr>
-    </table>
-</div>
+    <label for="ip_address"></label>
+    <input type="text" id="ip_address"></input>
+
+
+  </span>
+</p>
+<button class="button" id="authentication_button" onclick="configure();" data-i18n="pair.authorization.start_configuration" />
+<br /><br />
+<p class="youless-err-msg" style="color: #ff6300;"></p>
