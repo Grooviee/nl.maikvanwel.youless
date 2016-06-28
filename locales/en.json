@@ -1,11 +1,17 @@
 {
   "pair": {
-    "text": "Please enter the preferred name of the device and the IP address.",
-    "title": "Add YouLess device",
-    "error": "An error occurred.",
-    "required": "Both values are required.",
-    "name": "Name",
-    "ip": "IP address",
-    "save": "Save"
+		"authorization": {
+			"configure": "Configure YouLess device",
+			"start_configuration":"Save!",
+			"configuration_explanation": "Enter your YouLess device details below."
+		},
+    "configuration": {
+       "name": "Name",
+       "ip_address": "IP Adres"
+    },
+    "feedback":{
+			"could_not_connect": "Could not connect with you YouLess device. Check your connection details.",
+			"succesfully_connected": "Succesfully connected!"
+		}
   }
 }

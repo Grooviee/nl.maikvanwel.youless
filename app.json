@@ -6,7 +6,7 @@
   "name": {
       "en": "YouLess"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "compatibility": "0.x || 1.x",
   "author": {
       "name": "Maik van Wel",
@@ -24,18 +24,48 @@
   "dependencies": {
     "request": "*"
   },
-  "screensavers": [
-    {
-        "name": "powerusageled",
-        "title": {
-            "en": "Power Usage",
-            "nl": "Energie verbruik"
-        }
-    }
-  ],
   "drivers": [
     {
       "id": "youless",
+      "settings": [
+                        {
+                            "type": "group",
+                            "label": {
+                                "en": "General settings",
+                                "nl": "Algemene instellingen"
+                            },
+                            "children": [
+                                {
+                                    "id": "name",
+                                    "type": "text",
+                                    "label": {
+                                        "en": "Name",
+                                        "nl": "Naam"
+                                    }
+                                },
+                                {
+                                    "id": "host",
+                                    "type": "text",
+                                    "label": {
+                                        "en": "Host",
+                                        "nl": "Host"
+                                    }
+                                },
+                                {
+                            "id": "pollingrate",
+                            "type": "number",
+                            "label": {
+                                "en": "Polling rate in seconds (min. 5)",
+                                "nl": "Polling rate in seconden (min. 5)"
+                            },
+                            "attr": {
+                                "min": 5,
+                                "max": 3600
+                            }
+                        }
+                              ]
+                            }
+                          ],
       "name": {
         "en": "YouLess energy meter",
         "nl": "YouLess energiemeter"
@@ -45,21 +75,10 @@
         "small": "drivers/youless/assets/images/small.jpg"
       },
       "class": "sensor",
-      "capabilities": [ "measure_power" ],
+      "capabilities": [ "measure_power", "meter_power" ],
       "pair": [
         {
           "id": "pair"
-        },
-        {
-          "id": "list_devices",
-          "template": "list_devices",
-          "navigation": {
-            "next": "add_youless"
-          }
-        },
-        {
-          "id": "add_youless",
-          "template": "add_devices"
         }
       ]
     }

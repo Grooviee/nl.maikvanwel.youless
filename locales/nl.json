@@ -1,11 +1,17 @@
 {
   "pair": {
-    "text": "Vul a.u.b. een apparaatnaam en het bijbehorende IP in.",
-    "title": "Voeg YouLess apparaat toe",
-    "error": "Een fout is opgetreden.",
-    "required": "Beide velden zijn verplicht.",
-    "name": "Naam",
-    "ip": "IP-adres",
-    "save": "Opslaan"
+		"authorization": {
+			"configure": "Configureer YouLess device",
+			"start_configuration":"Opslaan!",
+			"configuration_explanation": "Voer hier je gegevens van je YouLess in."
+		},
+    "configuration": {
+       "name": "Naam",
+       "ip_address": "IP Adres"
+    },
+    "feedback":{
+			"could_not_connect": "Kon geen verbinding maken met je YouLess device. Check je connectie gegevens.",
+			"succesfully_connected": "Connectie succesvol!"
+		}
   }
 }
