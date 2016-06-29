@@ -170,7 +170,7 @@ function initDevice( device_data, newSettingsObj, callback) {
 
 function initDeviceInterval(device_data,pollingrate){
   intervalId[device_data.id] = setInterval(function () {
-    monitorYouless(devices[device_data.id], function(response){
+    monitorYouless(device_data, function(response){
         //reserved for callback
       })
     }, pollingrate * 1000);
@@ -181,7 +181,7 @@ function initDeviceInterval(device_data,pollingrate){
 function monitorYouless(device_data, callback) {
 
 
-      var device = device_data;
+      var device = getDeviceByData(device_data);
 
       Homey.log("Trying " + device.settings.host + " Polling rate is: " + device.settings.pollingrate);
 
@@ -200,18 +200,19 @@ function monitorYouless(device_data, callback) {
                 MeterTotal = MeterTotal.split(',').join("");
                 MeterTotal = parseFloat(MeterTotal);
 
-                if(currentUsage != device.data.LastUsage){
-                  module.exports.realtime( device.data, 'measure_power', currentUsage );
+                if(device.data.LastUsage != currentUsage){
+                  module.exports.realtime( device_data, 'measure_power', currentUsage );
                   device.data.LastUsage = currentUsage;
                 }
 
-                if(MeterTotal != device.data.totalKWH){
-                  module.exports.realtime( device.data, 'meter_power', MeterTotal );
+                if(device.data.totalKWH != MeterTotal){
+                  module.exports.realtime( device_data, 'meter_power', MeterTotal );
                   device.data.totalKWH = MeterTotal;
                 }
 
 
-              
+
+
 
 
                 Homey.log('Current usage:' + device.data.LastUsage + ' W');
