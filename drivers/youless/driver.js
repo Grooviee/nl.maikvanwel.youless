@@ -144,12 +144,12 @@ function initDevice( device_data, newSettingsObj, callback) {
         module.exports.setSettings( device_data, settings, function( err, settings ){
             // ... dunno what to do here, think nothing...
         })
-        devices[ device_data.id ].name = settings.name;
+        
     }
     else{
       devices[ device_data.id ].settings = settings;
       initDeviceInterval(device_data, settings.pollingrate);
-      devices[ device_data.id ].name = settings.name;
+
     }
   })
     devices[ device_data.id ] = {};

@@ -36,14 +36,6 @@
                             },
                             "children": [
                                 {
-                                    "id": "name",
-                                    "type": "text",
-                                    "label": {
-                                        "en": "Name",
-                                        "nl": "Naam"
-                                    }
-                                },
-                                {
                                     "id": "host",
                                     "type": "text",
                                     "label": {
