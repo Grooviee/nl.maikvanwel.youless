@@ -6,11 +6,19 @@
   "name": {
       "en": "YouLess"
   },
-  "version": "0.0.4",
-  "compatibility": "0.x || 1.x",
+  "version": "0.1.0",
+    "compatibility": ">=0.9 || 1.x",
   "author": {
       "name": "Maik van Wel",
       "email": "m.vanwel@inproxio.eu"
+  },
+  "contributors": {
+    "developers": [
+      {
+              "name": "Bas Jansen",
+              "email": "bas@balotti.com"
+          }
+    ]
   },
   "images": {
     "large": "./assets/images/large.jpg",
@@ -24,9 +32,63 @@
   "dependencies": {
     "request": "*"
   },
+  "capabilities": {
+        "meter_power": {
+            "type": "number",
+            "title": {
+                "en": "Power Meter",
+                "nl": "Stroommeter"
+            },
+            "units": {
+                "en": "KWh",
+                "nl": "KWh"
+            },
+            "desc": {
+                "en": "Current meter total usage",
+                "nl": "Huidige meter stand"
+            },
+            "decimals": 3,
+            "getable": true,
+            "setable": false
+        },
+        "measure_power": {
+            "type": "number",
+            "title": {
+                "en": "Power",
+                "nl": "Stroom"
+            },
+            "units": {
+                "en": "W",
+                "nl": "W"
+            },
+            "desc": {
+                "en": "Current power (W)",
+                "nl": "Huidig verbruik (W)"
+            },
+            "decimals": 0,
+            "getable": true,
+            "setable": false
+        }
+    },
   "drivers": [
     {
       "id": "youless",
+      "mobile": {
+            "components": [
+                {
+                    "id": "icon",
+                    "capabilities": [  ]
+                },
+                {
+                    "id": "sensor",
+                    "capabilities": [ "measure_power" ]
+                },
+                {
+                  "id": "sensor",
+                  "capabilities": [ "meter_power" ]
+                }
+              ]
+            },
       "settings": [
                         {
                             "type": "group",
@@ -36,16 +98,9 @@
                             },
                             "children": [
                                 {
-                                    "id": "name",
-                                    "type": "text",
-                                    "label": {
-                                        "en": "Name",
-                                        "nl": "Naam"
-                                    }
-                                },
-                                {
                                     "id": "host",
                                     "type": "text",
+                                    "value": "",
                                     "label": {
                                         "en": "Host",
                                         "nl": "Host"
@@ -54,6 +109,7 @@
                                 {
                             "id": "pollingrate",
                             "type": "number",
+                            "value": 10,
                             "label": {
                                 "en": "Polling rate in seconds (min. 5)",
                                 "nl": "Polling rate in seconden (min. 5)"

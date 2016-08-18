@@ -28,7 +28,7 @@ module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj,
      devices[device_data.id].settings.host=newSettingsObj.host;
      devices[device_data.id].settings.pollingrate=newSettingsObj.pollingrate;
      devices[device_data.id].name = newSettingsObj.name;
-    initDeviceInterval(device_data,devices[device_data.id].settings.pollingrate);
+    initDeviceInterval(device_data, devices[device_data.id].settings.pollingrate);
 
 
     // always fire the callback, or the settings won't change!
@@ -101,7 +101,7 @@ module.exports.capabilities = {
             var device = getDeviceByData( device_data );
             if( device instanceof Error ) return callback( device );
 
-            return callback( null, device.data.LastUsage );
+            return callback( null, device.LastUsage );
         }
     },
     meter_power: {
@@ -109,7 +109,7 @@ module.exports.capabilities = {
         var device = getDeviceByData( device_data );
         if( device instanceof Error ) return callback( device );
 
-        return callback( null, device.data.totalKWH );
+        return callback( null, device.totalKWH );
       }
     }
 }
@@ -144,12 +144,12 @@ function initDevice( device_data, newSettingsObj, callback) {
         module.exports.setSettings( device_data, settings, function( err, settings ){
             // ... dunno what to do here, think nothing...
         })
-        devices[ device_data.id ].name = settings.name;
+
     }
     else{
       devices[ device_data.id ].settings = settings;
       initDeviceInterval(device_data, settings.pollingrate);
-      devices[ device_data.id ].name = settings.name;
+
     }
   })
     devices[ device_data.id ] = {};
@@ -197,26 +197,28 @@ function monitorYouless(device_data, callback) {
                 var obj = body;
                 var currentUsage = obj.pwr;
                 var MeterTotal = obj.cnt;
-                MeterTotal = MeterTotal.split(',').join("");
-                MeterTotal = parseFloat(MeterTotal);
+                MeterTotal = MeterTotal.replace(",", ".");
+                MeterTotal = +MeterTotal;
+                //MeterTotal = MeterTotal / 1000;
 
-                if(device.data.LastUsage != currentUsage){
-                  module.exports.realtime( device_data, 'measure_power', currentUsage );
-                  device.data.LastUsage = currentUsage;
+                if(device.LastUsage != currentUsage){
+                  module.exports.realtime( device.data, 'measure_power', currentUsage, function( err, result ){
+                      device.LastUsage = currentUsage;
+                } );
+                }
+                if(device.totalKWH != MeterTotal){
+                  module.exports.realtime( device.data, 'meter_power', MeterTotal, function( err, result ){
+                      device.totalKWH = MeterTotal;
+                } );
                 }
 
-                if(device.data.totalKWH != MeterTotal){
-                  module.exports.realtime( device_data, 'meter_power', MeterTotal );
-                  device.data.totalKWH = MeterTotal;
-                }
 
 
 
 
 
-
-                Homey.log('Current usage:' + device.data.LastUsage + ' W');
-                Homey.log('Meter total:' + device.data.totalKWH + ' W/H');
+                Homey.log('Current usage:' + device.LastUsage + ' W');
+                Homey.log('Meter total:' + device.totalKWH + ' KW/H');
 
 
 
