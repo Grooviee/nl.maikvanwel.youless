@@ -155,7 +155,13 @@ function initDevice( device_data, newSettingsObj, callback) {
     devices[ device_data.id ] = {};
     devices[ device_data.id ].data = device_data;
 
-
+    Homey.manager('speech-input').on('speech', function (speech, callback) {
+        var device = getDeviceByData(device_data);
+        if(typeof device.LastUsage === 'undefined'){
+           monitorYouless(device_data); 
+        }
+        Homey.manager("speech-output").say( __("usage", {  "name": device.settings.name, "usage": device.LastUsage }));
+    });
 
 
 
