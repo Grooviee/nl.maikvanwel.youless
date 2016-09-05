@@ -32,6 +32,20 @@
   "dependencies": {
     "request": "*"
   },
+  "speech": [
+      {
+          "id": "energieverbruik",
+          "importance": 1,
+          "triggers": {
+              "en": ["energy usage"],
+              "nl": ["energieverbruik", "energie verbruik"]
+          }
+      }
+  ],
+  "permissions": [
+      "homey:manager:speech-output",
+      "homey:manager:speech-input"
+  ],
   "capabilities": {
         "meter_power": {
             "type": "number",
