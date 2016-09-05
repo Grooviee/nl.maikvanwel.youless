@@ -13,5 +13,6 @@
 			"could_not_connect": "Could not connect with you YouLess device. Check your connection details.",
 			"succesfully_connected": "Succesfully connected!"
 		}
-  }
+  },
+  "usage": "The current energy usage of __name__ is __usage__ watt"
 }
